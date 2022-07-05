@@ -2,41 +2,41 @@ import glob, json, os, re, subprocess, sys, time, requests
 
 init_data = []
 
-def navi_and_up(num):
+def navi_and_up(nc, num):
     global init_data
     (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/FreqTableGfx")
     dpm_str = dpm_str.replace('ERROR: Decoded data does not contain any value, you probably wanna look deeper into data;', '').replace('\nERROR: Incorrect variable path: smc_pptable/FreqTableGfx','').replace(' ','').split(',')
-    init_data[0][num]['FreqTableGfx_dpm_min'] = int(dpm_str[0])
-    init_data[0][num]['FreqTableGfx_dpm_max'] = int(dpm_str[-1])
+    init_data[nc][num]['FreqTableGfx_dpm_min'] = int(dpm_str[0])
+    init_data[nc][num]['FreqTableGfx_dpm_max'] = int(dpm_str[-1])
     (status,FreqGfx)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/FreqTableFreqTableGfx"+ str(dpm_str[-1]))
-    init_data[0][num]['FreqTableGfx'] = int(FreqGfx)
+    init_data[nc][num]['FreqTableGfx'] = int(FreqGfx)
     (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/FreqTableUclk")
     dpm_str = dpm_str.replace('ERROR: Decoded data does not contain any value, you probably wanna look deeper into data;', '').replace('\nERROR: Incorrect variable path: smc_pptable/FreqTableGfx','').replace(' ','').split(',')
-    init_data[0][num]['FreqTableUclk_dpm_min'] = int(dpm_str[1])
-    init_data[0][num]['FreqTableUclk_dpm_max'] = int(dpm_str[-1])
+    init_data[nc][num]['FreqTableUclk_dpm_min'] = int(dpm_str[1])
+    init_data[nc][num]['FreqTableUclk_dpm_max'] = int(dpm_str[-1])
     (status,FreqTableUclk)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/FreqTableFreqTableGfx"+ str(dpm_str[-1]))
-    init_data[0][num]['FreqTableUclk'] = int(FreqTableUclk)
+    init_data[nc][num]['FreqTableUclk'] = int(FreqTableUclk)
     (status,core_voltege)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/MinVoltageUlvGfx smc_pptable/MaxVoltageGfx")
-    init_data[0][num]['core_voltege_min'] = int(core_voltege.split("\n")[0])
-    init_data[0][num]['core_voltege_max'] = int(core_voltege.split("\n")[1])
+    init_data[nc][num]['core_voltege_min'] = int(core_voltege.split("\n")[0])
+    init_data[nc][num]['core_voltege_max'] = int(core_voltege.split("\n")[1])
     (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card3/device/pp_table get smc_pptable/MemMvddVoltage")
     dpm_str = dpm_str.replace('ERROR: Decoded data does not contain any value, you probably wanna look deeper into data;', '').replace('\nERROR: Incorrect variable path: smc_pptable/FreqTableGfx','').replace(' ','').split(',')
-    init_data[0][num]['MemMvddVoltage_dpm_min'] = int(dpm_str[1])
-    init_data[0][num]['MemMvddVoltage_dpm_max'] = int(dpm_str[-1])     
+    init_data[nc][num]['MemMvddVoltage_dpm_min'] = int(dpm_str[1])
+    init_data[nc][num]['MemMvddVoltage_dpm_max'] = int(dpm_str[-1])     
     (status,MemMvddVoltage)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/MemMvddVoltage"+ str(dpm_str[-1]))   
-    init_data[0][num]['MemMvddVoltage'] = int(MemMvddVoltage)    
+    init_data[nc][num]['MemMvddVoltage'] = int(MemMvddVoltage)    
 
-def ellesmere(num):
+def ellesmere(nc, num):
     global init_data
     (status,str_data)=subprocess.getstatusoutput("cat /sys/class/drm/card"+ num +"/device/pp_od_clk_voltage")
     buf = " ".join(str_data.split("\nOD_")[0].split())
     buf = buf.split(':')[-1].split(' ')
-    init_data[0][num]['core_freq'] = int(buf[1].replace('MHz',''))
-    init_data[0][num]['core_voltage'] = int(buf[2].replace('mV',''))
+    init_data[nc][num]['core_freq'] = int(buf[1].replace('MHz',''))
+    init_data[nc][num]['core_voltage'] = int(buf[2].replace('mV',''))
     buf = " ".join(str_data.split("\nOD_")[1].split())
     buf = buf.split(':')[-1].split(' ')
-    init_data[0][num]['mem_freq'] = int(buf[1].replace('MHz',''))
-    init_data[0][num]['mem_voltage'] = int(buf[2].replace('mV',''))
+    init_data[nc][num]['mem_freq'] = int(buf[1].replace('MHz',''))
+    init_data[nc][num]['mem_voltage'] = int(buf[2].replace('mV',''))
     
 def amd_f_data():
     global init_data
@@ -65,10 +65,15 @@ def amd_f_data():
                 init_data[nc][num]['name'] = name
             if 'Navi' in i:
                 init_data[nc][num]['series'] = 'Navi'
+                navi_and_up(nc, num)
             if 'Ellesmere' in i:
                 init_data[nc][num]['series'] = 'Ellesmere'
+                ellesmere(nc, num)
         nc=nc+1       
     with open('analytics-card.json', "w+") as file:
         file.seek(0)
         file.write(json.dumps(init_data))
         file.truncate()
+        
+if __name__ == '__main__':
+    amd_f_data()
