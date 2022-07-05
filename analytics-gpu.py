@@ -46,23 +46,28 @@ def amd_f_data():
     for i in output.split('\n'):
         if i.split(" ")[0].isdigit():
             card_num.append(i.split(" ")[0])
+    nc = 0
     for num in card_num:
         num=str(num)
+        init_data.append({str(num):{"card":num}})
         (status,output)=subprocess.getstatusoutput("rocm-smi -d " + num + " -a")
         for i in output.split('\n'):
             if 'PCI Bus:' in i:
-                init_data.append({str(num):{"pci":i.split(" ")[-1]}})
+                init_data[nc][num]["pci"] = i.split(" ")[-1]
             if 'Average Graphics Package Power (W)' in i:
-                init_data[0][num]['f_power'] = int(i.split(" ")[-1])
+                try:
+                    init_data[nc][num]['f_power'] = int(i.split(" ")[-1])
+                except Exception:
+                    init_data[nc][num]['f_power'] = int(float(i.split(" ")[-1]))
             if 'series' in i:
                 name_str = " ".join(i.split())
                 name = name_str.split(':')[-1]
-                init_data[0][num]['name'] = name
+                init_data[nc][num]['name'] = name
             if 'Navi' in i:
-                init_data[0][num]['series'] = 'Navi'
+                init_data[nc][num]['series'] = 'Navi'
             if 'Ellesmere' in i:
-                init_data[0][num]['series'] = 'Ellesmere'
-                
+                init_data[nc][num]['series'] = 'Ellesmere'
+        nc=nc+1       
     with open('analytics-card.json', "w+") as file:
         file.seek(0)
         file.write(json.dumps(init_data))
