@@ -20,16 +20,17 @@ def teamredminer_s():
     for i in d:
         #print(i[3],i[8],i[-1],i[-2],i[-3]) 0 29.48Mh/s, hw:0 r:0 a:129
         if 'mV' in i and ':' in i and 'C' in i:
-            hash.append({str(i.split("  ")[0][-1]):{'pci':i.split("  ")[1]}})
+            #hash.append({str(i.split("  ")[0][-1]):{'pci':i.split("  ")[1]}}) #'pci':i.split("  ")[1]}
+            n = int(i.split("  ")[0][-1])
+            hash.append({n:{}})
+            hash[n]['pci']=i.split("  ")[1]
         if 'h/s' in i or 'Mh/s' in i and 'hw:' in i and 'GPU' in i:
             i = i.replace('      ',' ').replace('  ',' ').split(' ')
             if i[3].isdigit():
-                hash[int(i[3])]['test']='test'
                 hash[int(i[3])]['mh'] = i[8].replace('Mh/s','')
                 hash[int(i[3])]['hw'] = i[-1].replace('hw:','').split('/')[0].replace('\x1b[0m','')
                 hash[int(i[3])]['r'] = i[-2].replace('r:','')
                 hash[int(i[3])]['a'] = i[-3].replace('a:','')
-                print(int(i[-1].replace('hw:','').split('/')[0].replace('\x1b[0m','')), round((int(i[-3].replace('a:',''))/100)*3))
                 if int(i[-1].replace('hw:','').split('/')[0].replace('\x1b[0m','')) >= round((int(i[-3].replace('a:',''))/100)*3):
                     hash[int(i[3])]['efficiency'] = 'bad'
                 else:
@@ -50,10 +51,12 @@ def reed_log(f_start=0):
             MINER = line.replace('MINER=','').replace(' ','').replace('\n','')
         if "MINER2=" in line:
             MINER2 = line.replace('MINER2=','')
-    print(MINER=='teamredminer')
     if MINER == 'teamredminer' or MINER2 == 'teamredminer':
         teamredminer_s()
     if f_start==1:
         return(hash)
 if __name__ == '__main__':
     reed_log()
+
+
+

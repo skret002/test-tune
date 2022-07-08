@@ -1,5 +1,5 @@
 import glob, json, os, re, subprocess, sys, time, requests
-
+from analytics_miner import reed_log
 init_data = []
 
 def navi_and_up(nc, num):
@@ -70,7 +70,13 @@ def amd_f_data():
             if 'Ellesmere' in i:
                 init_data[nc][num]['series'] = 'Ellesmere'
                 ellesmere(nc, num)
-        nc=nc+1       
+        nc=nc+1
+        
+    am = reed_log(1)
+    for i in range(0, len(am)):
+        for x in range(0, len(init_data)):
+            if init_data[x][x]["pci"] == am[i]['pci']:
+                init_data[x][x]['f_mh'] = am[i]['mh']
     with open('analytics-card.json', "w+") as file:
         file.seek(0)
         file.write(json.dumps(init_data))
