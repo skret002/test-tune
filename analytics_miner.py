@@ -1,8 +1,6 @@
 import glob, json, os, re, subprocess, sys, time, requests
-
 MINER  =''
 MINER2 =''
-
 hash = []
 last_dead={}
 
@@ -27,6 +25,7 @@ def teamredminer_s():
         if 'h/s' in i or 'Mh/s' in i and 'hw:' in i and 'GPU' in i:
             i = i.replace('      ',' ').replace('  ',' ').split(' ')
             if i[3].isdigit():
+                print(len(i))
                 hash[int(i[3])]['mh'] = i[8].replace('Mh/s','')
                 hash[int(i[3])]['hw'] = i[-1].replace('hw:','').split('/')[0].replace('\x1b[0m','')
                 hash[int(i[3])]['r'] = i[-2].replace('r:','')
@@ -57,6 +56,8 @@ def reed_log(f_start=0):
         return(hash)
 if __name__ == '__main__':
     reed_log()
+
+
 
 
 

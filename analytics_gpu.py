@@ -19,8 +19,9 @@ def navi_and_up(nc, num):
     (status,core_voltege)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/MinVoltageUlvGfx smc_pptable/MaxVoltageGfx")
     init_data[nc][num]['core_voltege_min'] = int(core_voltege.split("\n")[0])
     init_data[nc][num]['core_voltege_max'] = int(core_voltege.split("\n")[1])
-    (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card3/device/pp_table get smc_pptable/MemMvddVoltage")
+    (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+num+"/device/pp_table get smc_pptable/MemMvddVoltage")
     dpm_str = dpm_str.replace('ERROR: Decoded data does not contain any value, you probably wanna look deeper into data;', '').replace('\nERROR:Incorrectvariablepath:smc_pptable/MemMvddVoltage','').replace(' ','').replace('\nERROR:Incorrectvariablepath:smc_pptable/MemMvddVoltage','').split(',')
+    print('>>>',num, dpm_str[1],dpm_str[-1])
     init_data[nc][num]['MemMvddVoltage_dpm_min'] = int(dpm_str[1])
     init_data[nc][num]['MemMvddVoltage_dpm_max'] = int(dpm_str[-1])     
     (status,MemMvddVoltage)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/MemMvddVoltage/"+ str(dpm_str[-1]))   
@@ -55,6 +56,8 @@ def amd_f_data():
         for i in output.split('\n'):
             if 'PCI Bus:' in i:
                 init_data[nc][num]["pci"] = i.split(" ")[-1]
+                init_data[nc][num]["status_tune"] = 'waiting_settings'
+                init_data[nc][num]["vendor"] ="AMD"
             if 'Average Graphics Package Power (W)' in i:
                 try:
                     init_data[nc][num]['f_power'] = int(i.split(" ")[-1])
@@ -71,16 +74,33 @@ def amd_f_data():
                 init_data[nc][num]['series'] = 'Ellesmere'
                 ellesmere(nc, num)
         nc=nc+1
-        
+
     am = reed_log(1)
     for i in range(0, len(am)):
         for x in range(0, len(init_data)):
-            if init_data[x][x]["pci"] == am[i]['pci']:
-                init_data[x][x]['f_mh'] = am[i]['mh']
+            print(am[i]['mh'],init_data[x][str(init_data[x].keys()).replace("dict_keys(['","").replace("'])","")]['pci'] == '0000:'+am[i]['pci'].replace(' ',''))
+            if init_data[x][str(init_data[x].keys()).replace("dict_keys(['","").replace("'])","")]['pci'] == '0000:'+am[i]['pci'].replace(' ',''):
+                print('>>',am[i]['mh'])
+                init_data[x][str(init_data[x].keys()).replace("dict_keys(['","").replace("'])","")]['f_mh'] = am[i]['mh']
     with open('analytics-card.json', "w+") as file:
         file.seek(0)
         file.write(json.dumps(init_data))
         file.truncate()
-        
+
 if __name__ == '__main__':
     amd_f_data()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
