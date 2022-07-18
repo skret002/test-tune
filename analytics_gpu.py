@@ -21,7 +21,6 @@ def navi_and_up(nc, num):
     init_data[nc][num]['core_voltege_max'] = int(core_voltege.split("\n")[1])
     (status,dpm_str)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+num+"/device/pp_table get smc_pptable/MemMvddVoltage")
     dpm_str = dpm_str.replace('ERROR: Decoded data does not contain any value, you probably wanna look deeper into data;', '').replace('\nERROR:Incorrectvariablepath:smc_pptable/MemMvddVoltage','').replace(' ','').replace('\nERROR:Incorrectvariablepath:smc_pptable/MemMvddVoltage','').split(',')
-    print('>>>',num, dpm_str[1],dpm_str[-1])
     init_data[nc][num]['MemMvddVoltage_dpm_min'] = int(dpm_str[1])
     init_data[nc][num]['MemMvddVoltage_dpm_max'] = int(dpm_str[-1])     
     (status,MemMvddVoltage)=subprocess.getstatusoutput("upp -p /sys/class/drm/card"+ num +"/device/pp_table get smc_pptable/MemMvddVoltage/"+ str(dpm_str[-1]))   

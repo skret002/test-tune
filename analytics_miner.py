@@ -1,3 +1,4 @@
+
 import glob, json, os, re, subprocess, sys, time, requests
 MINER  =''
 MINER2 =''
@@ -13,7 +14,7 @@ def miner_log_json():
     except Exception:
         pass 
 def teamredminer_s():
-    (status,d)=subprocess.getstatusoutput("tail -n 100 "+teamredminer)
+    (status,d)=subprocess.getstatusoutput("tail -n 50 "+teamredminer)
     d = d.split('GPU workers')[-1].split('\n')
     for i in d:
         #print(i[3],i[8],i[-1],i[-2],i[-3]) 0 29.48Mh/s, hw:0 r:0 a:129
@@ -25,7 +26,6 @@ def teamredminer_s():
         if 'h/s' in i or 'Mh/s' in i and 'hw:' in i and 'GPU' in i:
             i = i.replace('      ',' ').replace('  ',' ').split(' ')
             if i[3].isdigit():
-                print(len(i))
                 hash[int(i[3])]['mh'] = i[8].replace('Mh/s','')
                 hash[int(i[3])]['hw'] = i[-1].replace('hw:','').split('/')[0].replace('\x1b[0m','')
                 hash[int(i[3])]['r'] = i[-2].replace('r:','')
@@ -34,9 +34,10 @@ def teamredminer_s():
                     hash[int(i[3])]['efficiency'] = 'bad'
                 else:
                     hash[int(i[3])]['efficiency'] = 'good'
-        if 'detected DEAD' in i:
-            (status,d)=subprocess.getstatusoutput("touch "+str(i.split(' ')[6].replace('(','').replace(')',''))+'.dead_gpu')
-    
+        if "DEAD" in i or "dead" in i:
+            print('******DEAD '+str(i.split(' ')[6].replace('(','').replace(')','').replace(",",""))+".dead_gpu")
+            (status,d)=subprocess.getstatusoutput("touch "+str(i.split(' ')[6].replace('(','').replace(')','').replace(",",""))+".dead_gpu")
+    (status,d)=subprocess.getstatusoutput("rm analytics-miner.json")
     with open('analytics-miner.json', "w+") as file:
         file.seek(0)
         file.write(json.dumps(hash))
@@ -55,7 +56,9 @@ def reed_log(f_start=0):
     if f_start==1:
         return(hash)
 if __name__ == '__main__':
-    reed_log()
+    while 1 > 0:
+        time.sleep(1)
+        reed_log()
 
 
 
