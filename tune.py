@@ -23,12 +23,20 @@ def shutdown_gpus():
             print(base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['status_tune'], base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['pci'])
             if base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['status_tune'] == 'waiting_settings':
                 base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['status_tune'] = 0
+                with open('/home/test-tune/analytics-card.json', 'r+') as f:
+                    card_settings = json.load(f)
+                    for i in range(0, len(card_settings)):
+                        if card_settings[i]['card'] == base_settings['card']:
+                            card_settings[i] = base_settings
+                            f.seek(0)  
+                            f.write(json.dumps(card_settings))                                                                                            
+                            f.truncate()                 
                 tune_now_pci = base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['pci']
                 tune_now_series = base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['series']
                 tune_now_vendor = base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['vendor']
                 card = base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['card']
                 break
-    if len(tune_now_pci) != 0 and ':'  in tune_now_pci:
+    if len(tune_now_pci) != 0  and ':'  in tune_now_pci:
         for i in range(0, len(base_settings)): 
             if  base_settings[i][str(base_settings[i].keys()).replace("dict_keys(['","").replace("'])","")]['pci'] ==  tune_now_pci:
                 pass
